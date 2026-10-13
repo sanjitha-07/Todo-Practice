@@ -1,38 +1,78 @@
 import { useState } from "react";
+import "./App.css";
 
 function App() {
-  const [task, setTask] = useState("");
   const [tasks, setTasks] = useState([]);
+  const [task, setTask] = useState("");
+  const [editId, setEditId] = useState(null);
 
-  function addTask() {
-    if (task.trim() !== "") {
-      setTasks([...tasks, task]);
-      setTask("");
+  // CREATE and UPDATE
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (task.trim() === "") return;
+
+    if (editId !== null) {
+      setTasks(
+        tasks.map((item) =>
+          item.id === editId ? { ...item, text: task } : item,
+        ),
+      );
+      setEditId(null);
+    } else {
+      setTasks([...tasks, { id: Date.now(), text: task }]);
     }
+
+    setTask("");
   }
 
-  function deleteTask(index) {
-    setTasks(tasks.filter((_, i) => i !== index));
+  // DELETE
+  function deleteTask(id) {
+    setTasks(tasks.filter((item) => item.id !== id));
+  }
+
+  // EDIT
+  function editTask(item) {
+    setTask(item.text);
+    setEditId(item.id);
   }
 
   return (
-    <div>
+    <div className="container">
       <h1>To-Do List</h1>
 
-      <input
-        value={task}
-        onChange={(e) => setTask(e.target.value)}
-        placeholder="Enter a task"
-      />
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Enter a task"
+          value={task}
+          onChange={(e) => setTask(e.target.value)}
+        />
 
-      <button onClick={addTask}>Add</button>
+        <button type="submit">{editId !== null ? "Update" : "Add"}</button>
+      </form>
 
-      {tasks.map((t, i) => (
-        <p key={i}>
-          {t}
-          <button onClick={() => deleteTask(i)}>Delete</button>
-        </p>
-      ))}
+      {tasks.length === 0 ? (
+        <p>No tasks yet. Add your first task!</p>
+      ) : (
+        <ul>
+          {tasks.map((item) => (
+            <li key={item.id}>
+              <span>{item.text}</span>
+
+              <div className="actions">
+                <button type="button" onClick={() => editTask(item)}>
+                  Edit
+                </button>
+
+                <button type="button" onClick={() => deleteTask(item.id)}>
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
